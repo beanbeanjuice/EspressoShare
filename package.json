@@ -1,0 +1,49 @@
+{
+  "name": "espresso-share",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:containers": "docker compose -f docker-compose.dev.yml up -d",
+    "dev": "pnpm run dev:containers && pnpm run prisma:setup && next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "prisma:generate": "prisma generate",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "prisma:setup": "npm run prisma:migrate:dev && npm run prisma:generate && npm run prisma:seed"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mediabunny/server": "^1.65.2",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
+    "@mui/material-nextjs": "^9.5.0",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "@videojs/react": "^10.3.0",
+    "better-auth": "^1.7.15",
+    "mediabunny": "^1.65.2",
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sqids": "^0.3.0",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
+    "dotenv": "^18.0.9",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "prisma": "7.10.1",
+    "sass": "^1.107.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  },
+  "packageManager": "pnpm@12.16.1"
+}

@@ -1,0 +1,16 @@
+services:
+  db: # PostgreSQL
+    image: postgres:alpine
+    volumes:
+      - espresso-share-db-data:/var/lib/postgresql/18/docker
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      POSTGRES_DB: espresso
+    ports:
+      - "5432:5432"
+
+volumes:
+  espresso-share-db-data:

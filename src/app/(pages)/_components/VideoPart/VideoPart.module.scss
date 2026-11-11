@@ -1,0 +1,35 @@
+.Part {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  cursor: pointer;
+}
+
+.Media {
+  position: relative;
+  width: 300px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: black;
+}
+
+.Thumbnail,
+.Preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.Preview {
+  opacity: 0;
+  transition: opacity 150ms ease;
+
+  &.Visible {
+    opacity: 1;
+  }
+}

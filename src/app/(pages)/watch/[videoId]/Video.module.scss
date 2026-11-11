@@ -1,0 +1,29 @@
+.VideoPage {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  >div {
+    width: 50%;
+  }
+
+  width: 100%;
+  height: 100%;
+
+  margin: auto;
+}
+
+.Video {
+  //max-height: 65vh;
+  //max-width: 0;
+  max-height: 75vh;
+  margin: auto;
+}
+
+.Right, .Left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

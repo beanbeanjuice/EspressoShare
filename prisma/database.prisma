@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  binaryTargets = ["native", "linux-musl", "linux-musl-openssl-3.0.x"]
+  provider      = "prisma-client"
+  output        = "../src/generated/prisma"
+  engineType    = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/////////////////
+// Video Stuff //
+/////////////////
+
+model Video {
+  id          String @id @default(nanoid(5))
+  title       String
+  description String
+  fileUrl     String @unique // Relative URL to the videos directory.
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+////////////////
+// User Stuff //
+////////////////
+
+model User {
+  id            String    @id
+  name          String
+  username      String    @unique
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  // Admin Plugin
+  role       String?
+  banned     Boolean?
+  banReason  String?
+  banExpires DateTime? @db.Timestamptz(3)
+
+  twoFactorEnabled Boolean?    @default(false)
+  twofactors       TwoFactor[]
+
+  videos Video[]
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Admin Plugin
+  impersonatedBy String?
+
+  @@unique([token])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+}
+
+model TwoFactor {
+  id                      String    @id
+  secret                  String
+  backupCodes             String
+  verified                Boolean?
+  failedVerificationCount Int?      @default(0)
+  lockedUntil             DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
