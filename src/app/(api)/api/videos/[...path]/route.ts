@@ -32,7 +32,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ path: st
 
     const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.get("range") ?? "");
     if (range && (range[1] || range[2])) {
-        let start: number, end: number;
+        let start: number;
+        let end: number;
+
+        // thank god for stack overflow
         if (range[1]) {
             start = Number(range[1]);
             end = range[2] ? Math.min(Number(range[2]), size - 1) : size - 1;
@@ -40,9 +43,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ path: st
             start = Math.max(size - Number(range[2]), 0); // "bytes=-500" = last 500 bytes
             end = size - 1;
         }
+
         if (start > end || start >= size) {
             return new Response(null, { status: 416, headers: { "Content-Range": `bytes */${size}` } });
         }
+        
         const stream = Readable.toWeb(createReadStream(filePath, { start, end })) as ReadableStream;
         return new Response(stream, {
             status: 206,
