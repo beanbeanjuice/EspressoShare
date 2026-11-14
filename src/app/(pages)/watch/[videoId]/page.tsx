@@ -3,6 +3,7 @@ import { prisma } from "@prisma";
 import VideoPage from "./VideoPage";
 import {Suspense} from "react";
 import {io} from "next/cache";
+import {VideoStatus} from "@/generated/prisma/enums";
 
 const Page = async ({ params }: { params: Promise<{ videoId: string}>}) => {
     return (
@@ -24,6 +25,17 @@ const VideoResolver = async ({ params }: { params: Promise<{ videoId: string}>})
     });
 
     if (!video) notFound();
+    if (video.status !== VideoStatus.READY) {
+        return (
+            <div style={{ padding: "2rem", textAlign: "center" }}>
+                <p>
+                    {video.status === VideoStatus.FAILED
+                        ? "This video failed to process."
+                        : "This video is still processing..."}
+                </p>
+            </div>
+        );
+    }
 
     return (
         <VideoPage video={video} />

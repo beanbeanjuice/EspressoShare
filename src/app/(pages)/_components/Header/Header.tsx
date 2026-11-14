@@ -21,7 +21,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import React from "react";
 import Link from "next/link";
 
-const pages = ['Home', 'Upload', 'Progress'];
+const pages = ['Home', 'Upload'];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 const Header = () => {

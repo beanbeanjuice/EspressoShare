@@ -1,0 +1,48 @@
+services:
+  db: # Port 5432
+    image: postgres:alpine
+    volumes:
+      - espresso-share-db-data:/var/lib/postgresql/18/docker
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      POSTGRES_DB: espresso
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d espresso" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - espresso-share_nw
+
+  espresso:
+    image: beanbeanjuice/espresso-share:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://admin:password@db:5432/espresso?schema=public
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: http://localhost:3000 # PUBLIC URL THAT YOU ARE USING
+      PRE_PRODUCTION: false # TESTING ONLY
+    volumes:
+      - espresso-share-uploads:/app/uploads
+      - espresso-share-videos:/app/videos
+      - espresso-share-thumbnails:/app/thumbnails
+    ports:
+      - "3000:3000"
+    networks:
+      - espresso-share_nw
+
+volumes:
+  espresso-share-db-data:
+  espresso-share-videos:
+  espresso-share-uploads:
+  espresso-share-thumbnails:
+
+networks:
+  espresso-share_nw:
+    external: false

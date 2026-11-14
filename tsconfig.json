@@ -21,6 +21,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@prisma": ["./src/app/(api)/api/_util/prisma.ts"],
+      "@api/*": ["./src/app/(api)/api/*"],
       "@api/util/*": ["./src/app/(api)/api/_util/*"],
       "@util/*": ["./src/_util/*"],
       "@lib/*": ["./src/lib/*"],

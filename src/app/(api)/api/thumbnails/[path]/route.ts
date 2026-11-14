@@ -3,12 +3,11 @@ import path from "node:path";
 
 const THUMBNAILS_DIR = path.resolve(process.cwd(), "thumbnails");
 
-// Only "<id>.webp", letters/digits/_/- in the id. Nothing else can get through, including "../"
+// Only "<id>.webp"
 const FILE_PATTERN = /^[A-Za-z0-9_-]+\.webp$/;
 
 export async function GET(req: Request, { params }: { params: Promise<{ path: string }> }) {
-    const { path: parts } = await params;
-    const file = parts.length === 1 ? parts[0] : "";
+    const { path: file } = await params;
     if (!FILE_PATTERN.test(file)) return new Response("Not found", { status: 404 });
 
     const filePath = path.join(THUMBNAILS_DIR, file);

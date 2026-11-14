@@ -19,15 +19,53 @@ datasource db {
 // Video Stuff //
 /////////////////
 
+enum VideoStatus {
+  READY
+  PROCESSING
+  FAILED
+}
+
 model Video {
   id          String @id @default(nanoid(5))
   title       String
   description String
-  fileUrl     String @unique // Relative URL to the videos directory.
+
+  // If a file is transcoding, it won't have a fileUrl yet.
+  status       VideoStatus   @default(PROCESSING)
+  fileUrl      String?       @unique
+  transcodeJob TranscodeJob?
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum TranscodeStatus {
+  QUEUED
+  ENCODING
+  FAILED
+}
+
+model TranscodeJob {
+  id String @id @default(cuid(2))
+
+  videoId String @unique
+  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  rawPath String // this is where the original raw video lives before transcoding
+
+  // ffmpeg settings
+  start          Float
+  end            Float
+  selectedTracks Int[]
+
+  // progress
+  status   TranscodeStatus @default(QUEUED)
+  progress Float           @default(0)
+
+  error     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }

@@ -19,13 +19,10 @@ import UploadInformationComponent from "@/app/(pages)/upload/UploadInformationCo
 import GetAudioTracks, {CustomAudioTrack} from "@/app/(pages)/upload/_util/ListAudioTracks";
 import {useRouter} from "next/navigation";
 
-type FinalUploadEvent = {type: "done"} | {type: "error"; message: string};
-
 const UploadPage = () => {
     const router = useRouter();
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
-    const [convertProgress, setConvertProgress] = useState(0);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
 
@@ -95,26 +92,9 @@ const UploadPage = () => {
 
         setUploading(true);
         setUploadProgress(0);
-        setConvertProgress(0);
         setUploadError(null);
 
         const xhr = new XMLHttpRequest();
-        let offset = 0;
-        let finalEvent: FinalUploadEvent | null = null;
-
-        const readEvents = () => {
-            const text = xhr.responseText.slice(offset);
-            const lastNewline = text.lastIndexOf("\n");
-            if (lastNewline === -1) return;
-
-            offset += lastNewline + 1;
-            for (const line of text.slice(0, lastNewline).split("\n")) {
-                if (!line) continue;
-                const event = JSON.parse(line);
-                if (event.type === "progress") setConvertProgress(Math.round(event.value * 100));
-                if (event.type === "done" || event.type === "error") finalEvent = event;
-            }
-        };
 
         xhr.open("POST", "/api/upload");
         xhr.setRequestHeader("x-upload-meta", encodeURIComponent(
@@ -127,9 +107,7 @@ const UploadPage = () => {
             }
         };
         xhr.upload.onload = () => setUploadProgress(100);
-        xhr.onprogress = () => {
-            if (xhr.status === 200) readEvents();
-        };
+
         xhr.onload = () => {
             setUploading(false);
 
@@ -138,14 +116,20 @@ const UploadPage = () => {
                 return;
             }
 
-            readEvents();
-            if (finalEvent?.type === "done") {
-                router.push("/");
-                router.refresh();
-            } else {
-                setUploadError(finalEvent?.message ?? "The upload ended unexpectedly");
-            }
+            // Kind of required otherwise nextjs cache will reuse the same stuff
+            if (localFile) URL.revokeObjectURL(localFile);
+            setFile(null);
+            setLocalFile(null);
+            setTracks([]);
+            setSelectedTracks([]);
+            setDuration(0);
+            setRange([0, 0]);
+            setUploadProgress(0);
+
+            router.push("/");
+            router.refresh();
         };
+
         xhr.onerror = () => {
             setUploading(false);
             setUploadError("Network error");
@@ -221,13 +205,6 @@ const UploadPage = () => {
                     <div>
                         <Typography variant="caption">Upload: {uploadProgress}%</Typography>
                         <LinearProgress variant="determinate" value={uploadProgress} />
-                    </div>
-                    <div>
-                        <Typography variant="caption">Converting: {convertProgress}%</Typography>
-                        <LinearProgress
-                            variant={uploadProgress === 100 && convertProgress === 0 ? "indeterminate" : "determinate"}
-                            value={convertProgress}
-                        />
                     </div>
                     {uploadError && <Typography color="error">{uploadError}</Typography>}
                 </DialogContent>

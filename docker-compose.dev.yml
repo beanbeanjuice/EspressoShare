@@ -1,5 +1,5 @@
 services:
-  db: # PostgreSQL
+  db:
     image: postgres:alpine
     volumes:
       - espresso-share-db-data:/var/lib/postgresql/18/docker

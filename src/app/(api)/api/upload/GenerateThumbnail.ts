@@ -6,7 +6,7 @@ const FFMPEG = process.env.FFMPEG_PATH ?? "ffmpeg";
 type GenerateThumbnailOptions = {
     videoPath: string;
     outputPath: string;
-    duration: number;      // duration of the converted video, in seconds
+    duration: number;
     width?: number;
     height?: number;
     signal?: AbortSignal;
@@ -17,8 +17,7 @@ const GenerateThumbnail = async (
 
     if (signal?.aborted) throw new Error("Upload canceled");
 
-    // Start looking 25% into the clip (skips intros / fade-ins / black first frames)
-    const seek = Math.max(0, duration * 0.25);
+    const seek = 0; // the (second) frame which we are choosing the thumbnail
 
     const filters = [
         // Pick the most representative frame of the next 50
@@ -44,7 +43,7 @@ const GenerateThumbnail = async (
         outputPath,
     ];
 
-    const child = spawn(FFMPEG, args, {
+    const child = spawn(/*turbopackIgnore: true*/ FFMPEG, args, {
         signal,
         killSignal: "SIGKILL",
         stdio: ["ignore", "ignore", "pipe"],

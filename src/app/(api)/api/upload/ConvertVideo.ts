@@ -49,9 +49,10 @@ const ConvertVideo = async (
         // Video Encoding
         "-c:v", "libx264",
         "-crf", "24",
-        "-preset", "slow",
+        "-preset", "medium",
         "-pix_fmt", "yuv420p",
         "-fps_mode", "passthrough",
+        "-vf", "scale=-2:min(1080\\,ih)",
 
         // Audio Encoding
         ...audioArgs,
@@ -64,7 +65,7 @@ const ConvertVideo = async (
         outputPath,
     ];
 
-    const child = spawn(FFMPEG, args, {
+    const child = spawn(/*turbopackIgnore: true*/ FFMPEG, args, {
         signal,
         killSignal: "SIGKILL",
         stdio: ["ignore", "pipe", "pipe"],

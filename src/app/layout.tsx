@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${pacifico.variable} ${comfortaa.variable}`}>
+    <html lang="en" className={`${pacifico.variable} ${comfortaa.variable}`} data-scroll-behavior="smooth">
       <body>
       <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={darkTheme}>

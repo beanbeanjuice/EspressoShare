@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import {APIError, betterAuth} from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "@prisma";
 import {nextCookies} from "better-auth/next-js";
@@ -21,5 +21,18 @@ export const auth = betterAuth({
             displayUsername: false
         }),
         nextCookies() // Must be last
-    ]
+    ],
+    databaseHooks: {
+        user: {
+            create: {
+                before: async (user) => {
+                    const existing = await prisma.user.count();
+                    if (existing > 0) {
+                        throw new APIError("FORBIDDEN", { message: "Sign-ups are closed." });
+                    }
+                    return { data: user };
+                },
+            },
+        },
+    },
 });

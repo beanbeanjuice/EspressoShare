@@ -5,11 +5,11 @@
 .VideoList {
   list-style: none;
 
-  display: flex;
-  flex-direction: row;
-  justify-content: left;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 300px);
+  justify-content: center;
+  gap: 32px;
+  padding: 0;
+  margin: 0;
 
 }
