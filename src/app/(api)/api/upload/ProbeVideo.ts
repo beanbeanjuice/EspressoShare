@@ -6,7 +6,7 @@ const FFPROBE = process.env.FFPROBE_PATH ?? "ffprobe";
 
 type FfprobeOutput = {
     format: { duration?: string };
-    streams: { codec_type: string; duration?: string }[];
+    streams: { codec_type: string; duration?: string; width?: number; height?: number }[];
 };
 
 const ProbeVideo = async (path: string) => {
@@ -24,10 +24,13 @@ const ProbeVideo = async (path: string) => {
         || Math.max(0, ...info.streams.map((s) => Number(s.duration) || 0));
 
     const audio = info.streams.filter((s) => s.codec_type === "audio");
+    const firstVideo = info.streams.find((s) => s.codec_type === "video");
 
     return {
         duration,
         trackNumbers: audio.map((_, i) => i + 1), // Convert to 1 based indexing like mediabunny, maybe we can change this later
+        width: firstVideo?.width,
+        height: firstVideo?.height,
     };
 };
 

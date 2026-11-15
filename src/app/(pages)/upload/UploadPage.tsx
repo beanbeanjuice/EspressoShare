@@ -23,6 +23,7 @@ const UploadPage = () => {
     const router = useRouter();
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadSpeed, setUploadSpeed] = useState<number | null>(null);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
 
@@ -92,7 +93,12 @@ const UploadPage = () => {
 
         setUploading(true);
         setUploadProgress(0);
+        setUploadSpeed(null);
         setUploadError(null);
+
+        let lastLoaded = 0;
+        let lastTime = performance.now();
+        let smoothedSpeed: number | null = null;
 
         const xhr = new XMLHttpRequest();
 
@@ -104,6 +110,17 @@ const UploadPage = () => {
         xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
                 setUploadProgress(Math.round((event.loaded / event.total) * 100));
+
+                const now = performance.now();
+                const elapsed = (now - lastTime) / 1000;
+
+                if (elapsed >= 0.5) {
+                    const inst = (event.loaded - lastLoaded) / elapsed;
+                    smoothedSpeed = smoothedSpeed === null ? inst : smoothedSpeed * 0.7 + inst * 0.3;
+                    setUploadSpeed(smoothedSpeed);
+                    lastLoaded = event.loaded;
+                    lastTime = now;
+                }
             }
         };
         xhr.upload.onload = () => setUploadProgress(100);
@@ -125,6 +142,7 @@ const UploadPage = () => {
             setDuration(0);
             setRange([0, 0]);
             setUploadProgress(0);
+            setUploadSpeed(null);
 
             router.push("/");
             router.refresh();
@@ -133,6 +151,7 @@ const UploadPage = () => {
         xhr.onerror = () => {
             setUploading(false);
             setUploadError("Network error");
+            setUploadSpeed(null);
         };
 
         xhr.send(file);
@@ -203,7 +222,14 @@ const UploadPage = () => {
                 <DialogTitle>{uploadError ? "Upload failed" : "Uploading video"}</DialogTitle>
                 <DialogContent sx={{display: "grid", gap: 2, minWidth: 320}}>
                     <div>
-                        <Typography variant="caption">Upload: {uploadProgress}%</Typography>
+                        <Typography variant="caption">
+                            {`Upload: ${uploadProgress}%`}
+                            {uploadSpeed !== null && ` - ${(uploadSpeed / 1024 / 1024).toFixed(1)} MB/s`}
+                            {uploadSpeed !== null && uploadProgress < 100 && file && (() => {
+                                const etaSec = Math.round(file.size * (1 - uploadProgress / 100) / uploadSpeed);
+                                return ` - ${Math.floor(etaSec / 60)}:${String(etaSec % 60).padStart(2, '0')} left`;
+                            })()}
+                        </Typography>
                         <LinearProgress variant="determinate" value={uploadProgress} />
                     </div>
                     {uploadError && <Typography color="error">{uploadError}</Typography>}

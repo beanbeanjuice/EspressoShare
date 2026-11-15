@@ -35,6 +35,10 @@ model Video {
   fileUrl      String?       @unique
   transcodeJob TranscodeJob?
 
+  // For embedding in websites like Discord
+  width   Int?
+  height  Int?
+
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 

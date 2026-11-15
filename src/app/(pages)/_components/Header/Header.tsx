@@ -55,7 +55,7 @@ const Header = () => {
                             component={Link}
                             href={"/"}
                         >
-                            LOGO
+                            Espresso Share
                         </Typography>
 
                         <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>

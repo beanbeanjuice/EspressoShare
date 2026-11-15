@@ -3,6 +3,7 @@ import path from "node:path";
 import { prisma } from "@prisma";
 import ConvertVideo from "@/app/(api)/api/upload/ConvertVideo";
 import GenerateThumbnail from "@/app/(api)/api/upload/GenerateThumbnail";
+import ProbeVideo from "@/app/(api)/api/upload/ProbeVideo";
 import {TranscodeStatus, VideoStatus} from "@/generated/prisma/enums";
 
 export const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
@@ -148,10 +149,20 @@ const runJob = async (job: JobRow) => {
         await moveFile(stagingOutput, finalVideo);
         await moveFile(stagingThumb, finalThumb);
 
+        let width: number | undefined;
+        let height: number | undefined;
+        try {
+            const probed = await ProbeVideo(finalVideo);
+            width = probed.width;
+            height = probed.height;
+        } catch (probeError) {
+            console.error(`Probe for dimensions failed for video ${job.videoId}:`, probeError);
+        }
+
         await prisma.$transaction([
             prisma.video.update({
                 where: { id: job.videoId },
-                data: { status: VideoStatus.READY },
+                data: { status: VideoStatus.READY, width: width ?? null, height: height ?? null },
             }),
             prisma.transcodeJob.delete({ where: { id: job.id } }),
         ]);
