@@ -11,6 +11,11 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true
     },
+    advanced: {
+        ipAddress: {
+            ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"],
+        },
+    },
     plugins: [
         twoFactor(),
         admin({

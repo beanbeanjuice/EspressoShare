@@ -28,10 +28,12 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: http://localhost:3000 # PUBLIC URL THAT YOU ARE USING
       PRE_PRODUCTION: false # TESTING ONLY
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
     volumes:
-      - espresso-share-uploads:/app/uploads
-      - espresso-share-videos:/app/videos
-      - espresso-share-thumbnails:/app/thumbnails
+      - ./content/uploads:/app/uploads
+      - ./content/videos:/app/videos
+      - ./content/thumbnails:/app/thumbnails
     ports:
       - "3000:3000"
     networks:
@@ -39,9 +41,6 @@ services:
 
 volumes:
   espresso-share-db-data:
-  espresso-share-videos:
-  espresso-share-uploads:
-  espresso-share-thumbnails:
 
 networks:
   espresso-share_nw:
