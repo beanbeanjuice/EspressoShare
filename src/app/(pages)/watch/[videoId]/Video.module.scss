@@ -3,15 +3,26 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  gap: 2rem;
 
-  >div {
-    width: 50%;
+  @media screen and (max-width: 1000px) {
+    flex-direction: column;
   }
 
   width: 100%;
   height: 100%;
 
   margin: auto;
+}
+
+.Left {
+  width: 65%;
+}
+
+.Right {
+  width: 35%;
+  gap: 2rem;
+  padding: 2rem;
 }
 
 .Video {
@@ -26,4 +37,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  @media screen and (max-width: 1000px) {
+    width: 100%;
+  }
 }

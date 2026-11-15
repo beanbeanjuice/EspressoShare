@@ -70,12 +70,12 @@ export async function POST(req: Request) {
     const now = Date.now();
 
     setUploadSession({
-        uploadId,
+        uploadId: uploadId,
         userId: session.user.id,
-        rawPath,
-        size,
-        chunkSize,
-        totalChunks,
+        rawPath: rawPath,
+        size: size,
+        chunkSize: chunkSize,
+        totalChunks: totalChunks,
         received: new Set<number>(),
         meta: metaResult.meta,
         fileName: typeof fileName === "string" ? fileName : undefined,

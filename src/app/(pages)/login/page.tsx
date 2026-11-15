@@ -3,8 +3,11 @@
 import styles from "./Login.module.scss";
 import LoginComponent from "./LoginComponent";
 import {authClient} from "@lib/auth-client";
+import {useRouter} from "next/navigation";
 
 const Page = () => {
+    const router = useRouter();
+
     return (
         <div className={styles.LogIn}>
             <LoginComponent onSubmit={async (username, password) => {
@@ -18,6 +21,8 @@ const Page = () => {
                     },
                     onSuccess: (ctx) => {
                         //redirect to the dashboard or sign in page
+                        router.push("/");
+                        router.refresh();
                     },
                     onError: (ctx) => {
                         // display the error message

@@ -4,7 +4,7 @@ import { prisma } from "@prisma";
 import { UPLOADS_DIR } from "@api/upload/Jobs";
 import type { UploadMeta } from "@api/upload/_util/UploadMeta";
 
-// 32 MiB per chunk. The server decides this; the client just does what it's told.
+// 32 MiB per chunk. The server decides this and the client just does what it's told.
 export const CHUNK_SIZE = 32 * 1024 * 1024;
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -28,7 +28,7 @@ export type UploadSession = {
 // GLOBAL STATE //
 //////////////////
 
-// Same HMR-safe pattern as Jobs.ts — pin the registry on globalThis so dev-reloads
+// Same HMR-safe pattern as Jobs.ts so we pin the registry on globalThis so dev-reloads
 // don't drop in-flight uploads.
 
 const g = globalThis as unknown as {
@@ -59,14 +59,16 @@ export const deleteUploadSession = (id: string) => {
 };
 
 // Drop sessions whose lastActivity is older than TTL, removing the raw file too.
-// A completing session is never pruned — the finalizer owns it.
+// A completing session is never pruned and the finalizer owns it.
 export const pruneStaleSessions = async () => {
     try {
         const cutoff = Date.now() - SESSION_TTL_MS;
         const stale: UploadSession[] = [];
+
         for (const s of state.sessions.values()) {
             if (!s.completing && s.lastActivity < cutoff) stale.push(s);
         }
+
         for (const s of stale) {
             state.sessions.delete(s.uploadId);
             await rm(s.rawPath, { force: true }).catch(() => {});
@@ -76,10 +78,9 @@ export const pruneStaleSessions = async () => {
     }
 };
 
-// One-shot sweep: delete orphan `*.upload` files in UPLOADS_DIR that
-// (a) aren't referenced by any live TranscodeJob.rawPath, and
-// (b) are older than the TTL.
-// Never touches a file a TranscodeJob still points at.
+// We just delete orphaned upload files in the UPLOADS_DIR that...
+// 1) are not referenced by any live transcoding job
+// 2) are older than the TTL
 export const sweepOrphanUploads = async () => {
     if (state.sweptOrphans) return;
     state.sweptOrphans = true;
@@ -103,6 +104,6 @@ export const sweepOrphanUploads = async () => {
         }
     } catch (error) {
         console.error("Upload orphan sweep failed:", error);
-        // leave sweptOrphans true — we'll retry on next server boot
+        // retry again later
     }
 };

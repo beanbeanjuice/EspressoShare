@@ -1,5 +1,5 @@
 import {prisma} from "@prisma";
-import {notFound} from "next/navigation";
+import {notFound, redirect, RedirectType} from "next/navigation";
 import {auth} from "@lib/auth";
 import {headers} from "next/headers";
 import HomePage from "@/app/(pages)/(index-page)/HomePage";
@@ -11,7 +11,7 @@ const Page = async () => {
     headers: await headers()
   });
 
-  if (!session || !session.session) notFound();
+  if (!session || !session.session) redirect('/login', RedirectType.push);
 
   const videos = await prisma.video.findMany({
     where: {

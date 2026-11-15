@@ -9,18 +9,13 @@ import {
     getUploadSession,
 } from "@api/upload/_util/UploadSessions";
 
-// POST /api/upload/[uploadId]/complete — finalize a chunked upload.
-// Runs the same probe + Video/TranscodeJob create + enqueue flow the old
-// single-request upload used, once every chunk is in.
-export async function POST(
-    req: Request,
-    { params }: { params: Promise<{ uploadId: string }> },
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ uploadId: string }> }) {
     const session = await auth.api.getSession({ headers: req.headers });
     if (!session) return new Response("Unauthorized", { status: 401 });
 
     const { uploadId } = await params;
     const upload = getUploadSession(uploadId);
+
     if (!upload) return new Response("Not found", { status: 404 });
     if (upload.userId !== session.user.id) return new Response("Not found", { status: 404 });
     if (upload.completing) return new Response("Finalizing", { status: 409 });
@@ -30,14 +25,14 @@ export async function POST(
         for (let i = 0; i < upload.totalChunks; i++) {
             if (!upload.received.has(i)) missing.push(i);
         }
+
         return Response.json(
             { error: "missing_chunks", missing },
             { status: 409 },
         );
     }
 
-    // Guard against double-complete. Node is single-threaded so this flag flip
-    // is atomic against a concurrent call seeing an unlocked session.
+    // Guard against double-complete. Node is single-threaded so this flag flip is atomic against a concurrent call seeing an unlocked session.
     upload.completing = true;
 
     const { rawPath } = upload;
@@ -46,6 +41,7 @@ export async function POST(
 
     try {
         const { duration, trackNumbers } = await ProbeVideo(rawPath);
+
         if (end > duration + 0.05 ||
             !selectedTracks.every((number: number) => trackNumbers.includes(number))) {
             await rm(rawPath, { force: true }).catch(() => {});
@@ -64,7 +60,7 @@ export async function POST(
             const created = await tx.video.create({
                 data: {
                     title: title.trim(),
-                    description,
+                    description: description,
                     fileUrl: `pending-${uploadId}.upload`,
                     status: VideoStatus.PROCESSING,
                     userId: session.user.id,

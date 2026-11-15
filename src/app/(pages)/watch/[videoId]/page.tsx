@@ -9,6 +9,7 @@ import type {Metadata} from "next";
 import {VideoStatus} from "@/generated/prisma/enums";
 import ProbeVideo from "@/app/(api)/api/upload/ProbeVideo";
 import {VIDEOS_DIR} from "@/app/(api)/api/upload/Jobs";
+import {connection} from "next/server";
 
 const Page = async ({ params }: { params: Promise<{ videoId: string}>}) => {
     return (
@@ -42,12 +43,21 @@ const VideoResolver = async ({ params }: { params: Promise<{ videoId: string}>})
         );
     }
 
+    const fileName = video.fileUrl ?? `${video.id}.mp4`;
+    let sizeBytes: number | null = null;
+    try {
+        sizeBytes = (await stat(path.join(VIDEOS_DIR, fileName))).size;
+    } catch {
+        sizeBytes = null;
+    }
+
     return (
-        <VideoPage video={video} />
+        <VideoPage video={video} sizeBytes={sizeBytes} />
     )
 };
 
 export const generateMetadata = async ({ params }: { params: Promise<{ videoId: string}>}): Promise<Metadata> => {
+    await connection();
     const { videoId } = await params;
 
     const metadataBase = new URL(process.env.BETTER_AUTH_URL ?? "http://localhost:3000");
@@ -109,7 +119,7 @@ export const generateMetadata = async ({ params }: { params: Promise<{ videoId: 
                 description: description,
                 images: [{ url: thumbnailUrl, width: w, height: h }],
                 videos: [{
-                    url: videoUrl,
+                    url: absoluteVideoUrl,
                     secureUrl: absoluteVideoUrl,
                     type: "video/mp4",
                     width: w,

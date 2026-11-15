@@ -52,7 +52,7 @@ export default function LoginComponent({ onSubmit }: LogInProps) {
             />
 
             <Button type="submit" variant="contained" size="large">
-                Sign Up
+                Log In
             </Button>
         </Box>
     );

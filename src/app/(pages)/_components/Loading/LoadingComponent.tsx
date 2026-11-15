@@ -4,7 +4,7 @@ import {Typography} from "@mui/material";
 
 const LoadingComponent = () => {
     return (
-        <div>
+        <div className={styles.Loading}>
             <Typography variant={"h1"}>Loading...</Typography>
         </div>
     );

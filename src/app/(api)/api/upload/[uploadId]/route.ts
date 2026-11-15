@@ -8,18 +8,14 @@ import {
     getUploadSession,
 } from "@api/upload/_util/UploadSessions";
 
-// PUT /api/upload/[uploadId]?index=N — stream one chunk into the raw file
-// at offset N*chunkSize. Idempotent: re-sending the same index overwrites.
-export async function PUT(
-    req: Request,
-    { params }: { params: Promise<{ uploadId: string }> },
-) {
+export async function PUT(req: Request, { params }: { params: Promise<{ uploadId: string }> }) {
     const session = await auth.api.getSession({ headers: req.headers });
     if (!session) return new Response("Unauthorized", { status: 401 });
 
     const { uploadId } = await params;
     const upload = getUploadSession(uploadId);
-    // Treat "unknown session" and "not yours" the same — don't leak existence.
+
+    // Treat "unknown session" and "not yours" as the same for security reasons.
     if (!upload) return new Response("Not found", { status: 404 });
     if (upload.userId !== session.user.id) return new Response("Not found", { status: 404 });
     if (upload.completing) return new Response("Finalizing", { status: 409 });
@@ -61,7 +57,7 @@ export async function PUT(
     }
 
     if (written !== expected) {
-        // Client dropped the connection or sent a short chunk — let it retry.
+        // Client dropped connection so we should retry
         return new Response("Incomplete chunk", { status: 400 });
     }
 
@@ -71,16 +67,14 @@ export async function PUT(
     return new Response(null, { status: 204 });
 }
 
-// DELETE /api/upload/[uploadId] — client cancel.
-export async function DELETE(
-    req: Request,
-    { params }: { params: Promise<{ uploadId: string }> },
-) {
+// client cancelled for some reason
+export async function DELETE(req: Request, { params }: { params: Promise<{ uploadId: string }> }) {
     const session = await auth.api.getSession({ headers: req.headers });
     if (!session) return new Response("Unauthorized", { status: 401 });
 
     const { uploadId } = await params;
     const upload = getUploadSession(uploadId);
+
     if (!upload) return new Response(null, { status: 204 });
     if (upload.userId !== session.user.id) return new Response("Not found", { status: 404 });
     if (upload.completing) return new Response("Finalizing", { status: 409 });

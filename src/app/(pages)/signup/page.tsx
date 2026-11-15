@@ -3,8 +3,11 @@
 import styles from "./signup.module.scss";
 import SignUpComponent from "@/app/(pages)/signup/SIgnupComponent";
 import {authClient} from "@lib/auth-client";
+import {useRouter} from "next/navigation";
 
 const Signup = () => {
+    const router = useRouter();
+
     return (
         <div className={styles.Signup}>
             <SignUpComponent onSubmit={async (email, username, password) => {
@@ -21,6 +24,8 @@ const Signup = () => {
                     },
                     onSuccess: (ctx) => {
                         //redirect to the dashboard or sign in page
+                        router.push("/");
+                        router.refresh();
                     },
                     onError: (ctx) => {
                         // display the error message

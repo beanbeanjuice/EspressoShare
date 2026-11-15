@@ -1,8 +1,3 @@
-// Shared metadata validation for the chunked upload init endpoint.
-// The rules here are the same ones the single-request upload used to run
-// against x-upload-meta; now they live in one place so init and complete
-// speak the same language.
-
 export type UploadMeta = {
     title: string;
     description: string;
