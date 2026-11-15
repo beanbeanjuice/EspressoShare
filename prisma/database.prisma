@@ -26,7 +26,7 @@ enum VideoStatus {
 }
 
 model Video {
-  id          String @id @default(nanoid(5))
+  id          String @id @default(nanoid(8))
   title       String
   description String
 
@@ -35,9 +35,12 @@ model Video {
   fileUrl      String?       @unique
   transcodeJob TranscodeJob?
 
+  // Views
+  views VideoView[]
+
   // For embedding in websites like Discord
-  width   Int?
-  height  Int?
+  width  Int?
+  height Int?
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -72,6 +75,15 @@ model TranscodeJob {
   error     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model VideoView {
+  id String @id @default(cuid(2))
+
+  videoId String
+  video   Video  @relation(fields: [videoId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  viewedAt DateTime @default(now())
 }
 
 ////////////////

@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
+import {authClient} from "@lib/auth-client";
+import {useRouter} from "next/navigation";
 
-interface SignUpProps {
-    onSubmit?: (email: string, username: string, password: string) => void;
-}
+export default function SignUpComponent() {
+    const router = useRouter();
 
-export default function SignUpComponent({ onSubmit }: SignUpProps) {
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -23,6 +23,30 @@ export default function SignUpComponent({ onSubmit }: SignUpProps) {
         if (!email || !username || !password || !passwordsMatch) return;
         onSubmit?.(email, username, password);
     };
+
+    const onSubmit = async (email: string, username: string, password: string) => {
+        const { data, error } = await authClient.signUp.email({
+            email: email, // user email address
+            username: username,
+            password: password, // user password -> min 8 characters by default
+            name: "", // user display name
+            image: undefined, // User image URL (optional)
+            callbackURL: "/dashboard" // A URL to redirect to after the user verifies their email (optional)
+        }, {
+            onRequest: (ctx) => {
+                //show loading
+            },
+            onSuccess: (ctx) => {
+                //redirect to the dashboard or sign in page
+                router.push("/");
+                router.refresh();
+            },
+            onError: (ctx) => {
+                // display the error message
+                alert(ctx.error.message);
+            },
+        });
+    }
 
     return (
         <Box

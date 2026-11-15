@@ -7,6 +7,10 @@ import {connection} from "next/server";
 
 const Page = async () => {
   await connection();
+
+  const userCount = await prisma.user.count({});
+  if (userCount === 0) redirect("/signup", RedirectType.push);
+
   const session = await auth.api.getSession({
     headers: await headers()
   });

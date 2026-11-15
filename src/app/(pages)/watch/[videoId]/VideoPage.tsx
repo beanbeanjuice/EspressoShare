@@ -7,19 +7,35 @@ import {Card, Typography} from "@mui/material";
 import {Video} from "@/generated/prisma/browser";
 import React, {useEffect} from "react";
 import LocalDate from "@components/LocalDate";
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 type VideoPageProps = {
     video: Video;
     sizeBytes: number | null;
+    views: number;
 }
 
 const VideoPage = (props: VideoPageProps) => {
     const ref = React.useRef<HTMLVideoElement>(null);
+    const counted = React.useRef(false);
 
     useEffect(() => {
         const v = ref.current;
-        return () => v?.pause(); // runs when the page is hidden or unmounted
-    }, []);
+        if (!v) return;
+
+        const onPlay = () => {
+            if (counted.current) return; // once per page load
+            counted.current = true;
+            navigator.sendBeacon(`/api/video/${props.video.id}/view`);
+        };
+
+        v.addEventListener("play", onPlay);
+
+        return () => {
+            v.removeEventListener("play", onPlay);
+            v.pause();
+        };
+    }, [props.video.id]);
 
     return (
         <div className={styles.VideoPage}>
@@ -51,12 +67,24 @@ const VideoPage = (props: VideoPageProps) => {
                     }
                 </Typography>
 
+                
                 <Typography
                     variant="body1"
                     color="secondary"
-                    align="center"
+                    className={styles.Footer}
                 >
-                    <LocalDate date={props.video.createdAt} /> {props.sizeBytes != null ? ` - ${(props.sizeBytes / 1024 / 1024).toFixed(1)} MB` : null}
+                    <LocalDate date={props.video.createdAt} />
+                    {props.sizeBytes != null && (
+                        <>
+                            <span>•</span>
+                            <span>{(props.sizeBytes / 1024 / 1024).toFixed(1)} MB</span>
+                        </>
+                    )}
+                    <span>•</span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", whiteSpace: "nowrap" }}>
+                        <VisibilityIcon fontSize="inherit" />
+                        {props.views.toLocaleString()} {props.views === 1 ? "view" : "views"}
+                    </span>
                 </Typography>
             </Card>
         </div>

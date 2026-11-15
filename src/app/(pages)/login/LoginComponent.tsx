@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
+import {authClient} from "@lib/auth-client";
+import {redirect, RedirectType, useRouter} from "next/navigation";
 
-interface LogInProps {
-    onSubmit?: (username: string, password: string) => void;
-}
-
-export default function LoginComponent({ onSubmit }: LogInProps) {
+const LoginComponent = () => {
+    const router = useRouter();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [submitted, setSubmitted] = useState(false);
@@ -18,6 +17,27 @@ export default function LoginComponent({ onSubmit }: LogInProps) {
         if (!username || !password) return;
         onSubmit?.(username, password);
     };
+
+    const onSubmit = async (username: string, password: string) => {
+        const { data, error } = await authClient.signIn.username({
+            username: username,
+            password: password, // user password -> min 8 characters by default
+            callbackURL: "/" // A URL to redirect to after the user verifies their email (optional)
+        }, {
+            onRequest: (ctx) => {
+                //show loading
+            },
+            onSuccess: (ctx) => {
+                //redirect to the dashboard or sign in page
+                router.push("/");
+                router.refresh();
+            },
+            onError: (ctx) => {
+                // display the error message
+                alert(ctx.error.message);
+            },
+        });
+    }
 
     return (
         <Box
@@ -57,3 +77,5 @@ export default function LoginComponent({ onSubmit }: LogInProps) {
         </Box>
     );
 }
+
+export default LoginComponent;

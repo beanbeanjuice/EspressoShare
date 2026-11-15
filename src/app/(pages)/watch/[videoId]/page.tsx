@@ -27,6 +27,13 @@ const VideoResolver = async ({ params }: { params: Promise<{ videoId: string}>})
     const video = await prisma.video.findUnique({
         where: {
             id: videoId
+        },
+        include: {
+            _count: {
+                select: {
+                    views: true
+                }
+            }
         }
     });
 
@@ -52,7 +59,7 @@ const VideoResolver = async ({ params }: { params: Promise<{ videoId: string}>})
     }
 
     return (
-        <VideoPage video={video} sizeBytes={sizeBytes} />
+        <VideoPage video={video} sizeBytes={sizeBytes} views={video._count.views} />
     )
 };
 

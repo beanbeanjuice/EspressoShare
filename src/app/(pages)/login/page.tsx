@@ -1,35 +1,20 @@
-'use client';
+'use server';
 
 import styles from "./Login.module.scss";
 import LoginComponent from "./LoginComponent";
-import {authClient} from "@lib/auth-client";
-import {useRouter} from "next/navigation";
+import {connection} from "next/server";
+import {prisma} from "@prisma";
+import {redirect, RedirectType} from "next/navigation";
 
-const Page = () => {
-    const router = useRouter();
+const Page = async () => {
+    await connection();
+
+    const userCount = await prisma.user.count({});
+    if (userCount === 0) redirect("/signup", RedirectType.push);
 
     return (
-        <div className={styles.LogIn}>
-            <LoginComponent onSubmit={async (username, password) => {
-                const { data, error } = await authClient.signIn.username({
-                    username: username,
-                    password: password, // user password -> min 8 characters by default
-                    callbackURL: "/" // A URL to redirect to after the user verifies their email (optional)
-                }, {
-                    onRequest: (ctx) => {
-                        //show loading
-                    },
-                    onSuccess: (ctx) => {
-                        //redirect to the dashboard or sign in page
-                        router.push("/");
-                        router.refresh();
-                    },
-                    onError: (ctx) => {
-                        // display the error message
-                        alert(ctx.error.message);
-                    },
-                });
-            }} />
+        <div className={styles.Login}>
+            <LoginComponent />
         </div>
     );
 }
