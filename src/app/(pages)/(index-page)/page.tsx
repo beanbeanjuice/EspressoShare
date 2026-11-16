@@ -20,6 +20,13 @@ const Page = async () => {
   const videos = await prisma.video.findMany({
     where: {
       userId: session.session.userId,
+    },
+    include: {
+      _count: {
+        select: {
+          views: true
+        }
+      }
     }
   });
 

@@ -1,14 +1,18 @@
 'use client';
 
 import styles from "./Home.module.scss";
-import {Video} from "@/generated/prisma/browser";
+import type {VideoGetPayload} from "@/generated/prisma/models";
 import {VideoStatus} from "@/generated/prisma/enums";
 import VideoPart from "@components/VideoPart/VideoPart";
 import {useRouter} from "next/navigation";
 import {useEffect, useRef, useState} from "react";
 
+export type VideoWithViews = VideoGetPayload<{
+    include: { _count: { select: { views: true } } };
+}>;
+
 type HomePageProps = {
-    videos: Video[];
+    videos: VideoWithViews[];
 };
 
 type ProgressRow = { videoId: string; status: string; progress: number; error: string | null };
@@ -70,6 +74,7 @@ const HomePage = (props: HomePageProps) => {
                             <li key={video.id}>
                                 <VideoPart
                                     video={video}
+                                    viewCount={video._count.views}
                                     liveStatus={live?.status}
                                     liveProgress={live?.progress}
                                     liveError={live?.error ?? null}

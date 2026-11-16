@@ -2,6 +2,7 @@ import styles from "./UploadInformationComponent.module.scss";
 
 import {Box, Button, TextareaAutosize, TextField, Typography} from "@mui/material";
 import {useState} from "react";
+import {MAX_TITLE_LENGTH} from "@lib/limits";
 
 type UploadInformationProps = {
     onSubmit?: (title: string, description: string) => void;
@@ -34,7 +35,8 @@ const UploadInformationComponent = (props: UploadInformationProps) => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 error={submitted && !title}
-                helperText={submitted && !title ? "Title is required" : ""}
+                helperText={submitted && !title ? "Title is required" : `${title.length}/${MAX_TITLE_LENGTH}`}
+                slotProps={{htmlInput: {maxLength: MAX_TITLE_LENGTH}}}
                 autoComplete="title"
                 required
                 fullWidth

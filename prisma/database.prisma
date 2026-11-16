@@ -27,7 +27,7 @@ enum VideoStatus {
 
 model Video {
   id          String @id @default(nanoid(8))
-  title       String
+  title       String @db.VarChar(50)
   description String
 
   // If a file is transcoding, it won't have a fileUrl yet.

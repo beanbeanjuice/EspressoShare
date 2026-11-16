@@ -4,9 +4,7 @@ import { auth } from "@lib/auth";
 import { prisma } from "@prisma";
 import { THUMBNAILS_DIR, VIDEOS_DIR } from "@api/upload/Jobs";
 import { TranscodeStatus, VideoStatus } from "@/generated/prisma/enums";
-
-const MAX_TITLE_LENGTH = 200;
-const MAX_DESCRIPTION_LENGTH = 5000;
+import { MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH } from "@lib/limits";
 
 export async function DELETE(
     req: Request,

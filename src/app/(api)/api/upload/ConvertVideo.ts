@@ -48,7 +48,7 @@ const ConvertVideo = async (
 
         // Video Encoding
         "-c:v", "libx264",
-        "-crf", "24",
+        "-crf", "22",
         "-preset", "medium",
         "-pix_fmt", "yuv420p",
         "-fps_mode", "passthrough",

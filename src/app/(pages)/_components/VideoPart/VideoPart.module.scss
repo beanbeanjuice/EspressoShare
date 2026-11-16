@@ -9,12 +9,51 @@
   text-decoration: none;
 }
 
+.MediaWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .Media {
   position: relative;
   width: 300px;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background-color: black;
+}
+
+.MediaWrapper_CardDescription {
+  margin: 1rem;
+  align-self: stretch;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+// Titles are limited to 50 chars, so we want to preserve exactly 2 lines so every card
+// has the same h eight.
+.Title {
+  width: 100%;
+  text-align: center;
+  line-height: 1.5;
+  height: 3em; // 2 lines × 1.5 line-height
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere; // long unbroken words wrap instead of overflowing
+}
+
+.MediaWrapper_CardDescription_Extras {
+  align-self: stretch; // full width so the two ends can reach the edges
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .Thumbnail,

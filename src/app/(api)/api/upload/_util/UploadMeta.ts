@@ -1,3 +1,5 @@
+import { MAX_TITLE_LENGTH } from "@lib/limits";
+
 export type UploadMeta = {
     title: string;
     description: string;
@@ -26,6 +28,10 @@ export const validateMeta = (raw: unknown): ValidateMetaResult => {
         !selectedTracks.every((number: unknown) => Number.isInteger(number))
     ) {
         return { ok: false, status: 400, message: "Bad metadata" };
+    }
+
+    if (title.trim().length > MAX_TITLE_LENGTH) {
+        return { ok: false, status: 400, message: `Title must be ${MAX_TITLE_LENGTH} characters or fewer` };
     }
 
     return {

@@ -2,7 +2,7 @@
 
 import styles from "./VideoPart.module.scss";
 import {
-    Button,
+    Button, Card,
     Dialog,
     DialogActions,
     DialogContent,
@@ -18,6 +18,9 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import CheckIcon from "@mui/icons-material/Check";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import LocalDate from "@components/LocalDate";
+import {MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH} from "@lib/limits";
 import {Video} from "@/generated/prisma/browser";
 import {VideoStatus} from "@/generated/prisma/enums";
 import {useRouter} from "next/navigation";
@@ -26,6 +29,7 @@ import Link from "next/link";
 
 type VideoPartProps = {
     video: Video;
+    viewCount: number;
     liveStatus?: string;
     liveProgress?: number;
     liveError?: string | null;
@@ -45,32 +49,60 @@ const VideoPart = (props: VideoPartProps) => {
 
     if (status !== VideoStatus.READY) return <PlaceholderCard {...props} status={status} />;
 
-    return <ReadyCard video={props.video} />;
+    return <ReadyCard video={props.video} viewCount={props.viewCount} />;
 };
 
 type PlaceholderProps = VideoPartProps & { status: string };
 
 const PlaceholderCard = ({video, status, liveProgress, liveError}: PlaceholderProps) => {
     const pct = Math.round(((liveProgress ?? 0) * 100));
+    const failed = status === VideoStatus.FAILED;
+
     return (
         <div className={styles.Part}>
-            <div className={styles.Media}>
-                <div className={styles.Placeholder}>
-                    {status === VideoStatus.FAILED ? (
-                        <FailedCard video={video} error={liveError} />
-                    ) : (
-                        <>
-                            <Typography variant="body2">Processing… {pct}%</Typography>
-                            <LinearProgress
-                                variant="determinate"
-                                value={pct}
-                                sx={{width: "80%", mt: 1}}
-                            />
-                        </>
-                    )}
+            <Card
+                className={styles.MediaWrapper}
+                sx={{
+                    bgcolor: failed ? "error.dark" : "info.dark",
+                    color: "common.white",
+                }}
+            >
+                <div className={styles.Media}>
+                    <div className={styles.Placeholder}>
+                        {failed ? (
+                            <FailedCard video={video} error={liveError} />
+                        ) : (
+                            <>
+                                <Typography variant="body2">Processing… {pct}%</Typography>
+                                <LinearProgress
+                                    variant="determinate"
+                                    value={pct}
+                                    sx={{width: "80%", mt: 1}}
+                                />
+                            </>
+                        )}
+                    </div>
                 </div>
-            </div>
-            <Typography>{video.title}</Typography>
+
+                <div className={styles.MediaWrapper_CardDescription}>
+                    <Typography variant="body1" className={styles.Title} title={video.title}>
+                        {video.title}
+                    </Typography>
+
+                    <div className={styles.MediaWrapper_CardDescription_Extras}>
+                        <Typography variant="body2">
+                            <LocalDate date={video.createdAt} />
+                        </Typography>
+
+                        <Typography variant="body2">
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", whiteSpace: "nowrap" }}>
+                                <VisibilityIcon fontSize="inherit" />
+                                0 views {/* Just show a default of 0 */}
+                            </span>
+                        </Typography>
+                    </div>
+                </div>
+            </Card>
         </div>
     );
 };
@@ -121,7 +153,7 @@ const FailedCard = ({video, error}: FailedCardProps) => {
     );
 };
 
-const ReadyCard = ({video}: {video: Video}) => {
+const ReadyCard = ({video, viewCount}: {video: Video; viewCount: number}) => {
     const router = useRouter();
     const [active, setActive] = React.useState(false);   // video element mounted
     const [playing, setPlaying] = React.useState(false); // first frame is actually showing
@@ -242,52 +274,86 @@ const ReadyCard = ({video}: {video: Video}) => {
                 onPointerEnter={start}
                 onPointerLeave={stop}
             >
-                <div className={styles.Media}>
-                    <img
-                        className={styles.Thumbnail}
-                        src={`/api/thumbnails/${video.id}.webp`}
-                        alt={`Thumbnail for ${video.title}`}
-                        loading="lazy"
-                    />
-                    {active && (
-                        <HoverPreview
-                            src={`/api/videos/${video.fileUrl}`}
-                            visible={playing}
-                            onPlaying={() => setPlaying(true)}
+                <Card className={styles.MediaWrapper}>
+                    <div className={styles.Media}>
+                        <img
+                            className={styles.Thumbnail}
+                            src={`/api/thumbnails/${video.id}.webp`}
+                            alt={`Thumbnail for ${video.title}`}
+                            loading="lazy"
                         />
-                    )}
-                    <IconButton
-                        size="small"
-                        className={`${styles.Overlay} ${styles.OverlayTopLeft}`}
-                        sx={overlayButtonSx}
-                        onClick={onDelete}
-                        title="Delete"
-                        aria-label="Delete video"
+                        {active && (
+                            <HoverPreview
+                                src={`/api/videos/${video.fileUrl}`}
+                                visible={playing}
+                                onPlaying={() => setPlaying(true)}
+                            />
+                        )}
+                        <IconButton
+                            size="small"
+                            className={`${styles.Overlay} ${styles.OverlayTopLeft}`}
+                            sx={overlayButtonSx}
+                            onClick={onDelete}
+                            title="Delete"
+                            aria-label="Delete video"
+                        >
+                            <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                            size="small"
+                            className={`${styles.Overlay} ${styles.OverlayTopRight}`}
+                            sx={overlayButtonSx}
+                            onClick={onCopy}
+                            title={copied ? "Link copied" : "Copy link"}
+                            aria-label="Copy link"
+                        >
+                            {copied ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
+                        </IconButton>
+                        <IconButton
+                            size="small"
+                            className={`${styles.Overlay} ${styles.OverlayBottomRight}`}
+                            sx={overlayButtonSx}
+                            onClick={onMore}
+                            title="More"
+                            aria-label="More options"
+                        >
+                            <MoreVertIcon fontSize="small" />
+                        </IconButton>
+                    </div>
+
+                    <div
+                        className={styles.MediaWrapper_CardDescription}
                     >
-                        <DeleteOutlineIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                        size="small"
-                        className={`${styles.Overlay} ${styles.OverlayTopRight}`}
-                        sx={overlayButtonSx}
-                        onClick={onCopy}
-                        title={copied ? "Link copied" : "Copy link"}
-                        aria-label="Copy link"
-                    >
-                        {copied ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
-                    </IconButton>
-                    <IconButton
-                        size="small"
-                        className={`${styles.Overlay} ${styles.OverlayBottomRight}`}
-                        sx={overlayButtonSx}
-                        onClick={onMore}
-                        title="More"
-                        aria-label="More options"
-                    >
-                        <MoreVertIcon fontSize="small" />
-                    </IconButton>
-                </div>
-                <Typography>{video.title}</Typography>
+                        <Typography
+                            variant="body1"
+                            className={styles.Title}
+                            title={video.title}
+                        >
+                            {video.title}
+                        </Typography>
+
+                        <div
+                            className={styles.MediaWrapper_CardDescription_Extras}
+                        >
+                            <Typography
+                                variant="body2"
+                                color="secondary"
+                            >
+                                <LocalDate date={video.createdAt} />
+                            </Typography>
+
+                            <Typography
+                                variant="body2"
+                                color="secondary"
+                            >
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", whiteSpace: "nowrap" }}>
+                                <VisibilityIcon fontSize="inherit" />
+                                    {viewCount.toLocaleString()} {viewCount === 1 ? "view" : "views"}
+                            </span>
+                            </Typography>
+                        </div>
+                    </div>
+                </Card>
             </Link>
             <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={closeMenu}>
                 <MenuItem onClick={openEdit}>Edit</MenuItem>
@@ -299,7 +365,8 @@ const ReadyCard = ({video}: {video: Video}) => {
                         label="Title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        slotProps={{htmlInput: {maxLength: 200}}}
+                        slotProps={{htmlInput: {maxLength: MAX_TITLE_LENGTH}}}
+                        helperText={`${title.length}/${MAX_TITLE_LENGTH}`}
                         fullWidth
                         required
                         margin="dense"
@@ -309,7 +376,7 @@ const ReadyCard = ({video}: {video: Video}) => {
                         label="Description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        slotProps={{htmlInput: {maxLength: 5000}}}
+                        slotProps={{htmlInput: {maxLength: MAX_DESCRIPTION_LENGTH}}}
                         fullWidth
                         multiline
                         minRows={3}
