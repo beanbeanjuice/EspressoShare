@@ -1,0 +1,46 @@
+.UploadPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+
+  width: 100%;
+}
+
+.Content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  gap: 2rem;
+}
+
+.Left {
+  width: 75%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 1rem;
+}
+
+.Right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: 25%;
+  gap: 2rem;
+}
+
+.Left, .Right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
