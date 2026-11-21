@@ -67,6 +67,7 @@ model TranscodeJob {
   start          Float
   end            Float
   selectedTracks Int[]
+  cuts           Json  @default("[]")
 
   // progress
   status   TranscodeStatus @default(QUEUED)

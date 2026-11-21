@@ -26,7 +26,7 @@
     "@videojs/react": "^10.3.0",
     "better-auth": "^1.7.15",
     "mediabunny": "^1.65.2",
-    "next": "16.4.3",
+    "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "sqids": "^0.3.0",
@@ -45,5 +45,5 @@
     "tsx": "^4.23.15",
     "typescript": "^5"
   },
-  "packageManager": "pnpm@12.16.1"
+  "packageManager": "pnpm@12.21.0"
 }

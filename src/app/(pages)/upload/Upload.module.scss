@@ -11,7 +11,7 @@
 .Content {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   width: 100%;
   gap: 2rem;
@@ -42,20 +42,5 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-}
-
-.Tracks {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.TracksGroup {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   justify-content: center;
 }

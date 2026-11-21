@@ -23,6 +23,8 @@ const moveFile = async (from: string, to: string) => {
     }
 };
 
+import type { Cut } from "@/app/(api)/api/upload/_util/UploadMeta";
+
 type JobRow = {
     id: string;
     videoId: string;
@@ -30,6 +32,7 @@ type JobRow = {
     start: number;
     end: number;
     selectedTracks: number[];
+    cuts: Cut[];
 };
 
 //////////////////
@@ -88,6 +91,7 @@ export const pump = async () => {
             start: next.start,
             end: next.end,
             selectedTracks: next.selectedTracks,
+            cuts: (next.cuts as unknown as Cut[]) ?? [],
         });
     }
 };
@@ -133,6 +137,7 @@ const runJob = async (job: JobRow) => {
             start: job.start,
             end: job.end,
             tracks: job.selectedTracks,
+            cuts: job.cuts,
             signal: abort.signal,
             onProgress,
         });

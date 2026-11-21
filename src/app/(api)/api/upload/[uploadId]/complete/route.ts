@@ -36,7 +36,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ uploadI
     upload.completing = true;
 
     const { rawPath } = upload;
-    const { title, description, range, selectedTracks } = upload.meta;
+    const { title, description, range, selectedTracks, cuts } = upload.meta;
     const [start, end] = range;
 
     try {
@@ -77,6 +77,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ uploadI
                     start,
                     end,
                     selectedTracks,
+                    cuts,
                     status: TranscodeStatus.QUEUED,
                     progress: 0,
                 },

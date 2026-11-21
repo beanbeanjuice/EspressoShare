@@ -4,19 +4,20 @@ import styles from "./Upload.module.scss";
 
 import {
     Button,
-    Checkbox,
     Dialog, DialogActions,
     DialogContent,
     DialogTitle,
-    FormControlLabel,
-    FormGroup, LinearProgress,
-    Slider,
+    LinearProgress,
     Typography
 } from "@mui/material";
-import React, {useEffect, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef, useState} from "react";
 import VideoPlayer from "@components/VideoPlayer/VideoPlayer";
 import UploadInformationComponent from "@/app/(pages)/upload/UploadInformationComponent";
+import TrimBar from "@/app/(pages)/upload/TrimBar";
+import AudioEditor, {type ClientCut} from "@/app/(pages)/upload/AudioEditor";
 import GetAudioTracks, {CustomAudioTrack} from "@/app/(pages)/upload/_util/ListAudioTracks";
+import {decodeAudioTracks, type DecodedAudioTrack, type TrackDecodeStatus} from "@/app/(pages)/upload/_util/DecodeAudioTracks";
+import useAudioPreview from "@/app/(pages)/upload/_util/useAudioPreview";
 import {uploadChunks} from "@/app/(pages)/upload/_util/UploadChunks";
 import {useRouter} from "next/navigation";
 
@@ -33,20 +34,25 @@ const UploadPage = () => {
 
     const [file, setFile] = useState<File | null>(null);
     const [tracks, setTracks] = useState<CustomAudioTrack[]>([]);
-    const [selectedTracks, setSelectedTracks] = useState<number[]>([]);
 
     const [localFile, setLocalFile] = useState<string | null>(null);
     const [duration, setDuration] = useState(0);
-    const [range, setRange] = useState([0, 0]);
+    const [range, setRange] = useState<[number, number]>([0, 0]);
+    const [currentTime, setCurrentTime] = useState(0);
     const videoRef = React.useRef<HTMLVideoElement>(null);
 
-    // Shared abort controller for the active upload. The use effect cleanup triggers it if the component is unmounted
-    // For example if a user leaves the page or something
+    const [mutedTracks, setMutedTracks] = useState<Set<number>>(new Set());
+    const [soloedTracks, setSoloedTracks] = useState<Set<number>>(new Set());
+    const [cuts, setCuts] = useState<ClientCut[]>([]);
+    const [decodeStatus, setDecodeStatus] = useState<Map<number, TrackDecodeStatus>>(new Map());
+    const decodeAbortRef = useRef<AbortController | null>(null);
+
     const uploadAbortRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
         return () => {
             uploadAbortRef.current?.abort();
+            decodeAbortRef.current?.abort();
         };
     }, []);
 
@@ -55,31 +61,100 @@ const UploadPage = () => {
         if (!f) return;
         setFile(f);
         setLocalFile(URL.createObjectURL(f));
+        setMutedTracks(new Set());
+        setSoloedTracks(new Set());
+        setCuts([]);
 
         const found = await GetAudioTracks(f);
         setTracks(found);
-        setSelectedTracks(found.map((t) => t.number)); // keep all by default
+
+        decodeAbortRef.current?.abort();
+        const abort = new AbortController();
+        decodeAbortRef.current = abort;
+        setDecodeStatus(new Map(found.map((t) => [t.number, {kind: "loading"} as TrackDecodeStatus])));
+
+        if (typeof window !== "undefined") {
+            try {
+                const ctx = new AudioContext();
+                void decodeAudioTracks(
+                    f,
+                    found.map((t) => t.number),
+                    ctx,
+                    {
+                        onTrackReady: (track) => {
+                            setDecodeStatus((prev) => {
+                                const next = new Map(prev);
+                                next.set(track.number, {kind: "ready", track});
+                                return next;
+                            });
+                        },
+                        onTrackUnavailable: (trackNumber, reason) => {
+                            setDecodeStatus((prev) => {
+                                const next = new Map(prev);
+                                next.set(trackNumber, {kind: "unavailable", reason});
+                                return next;
+                            });
+                        },
+                    },
+                    abort.signal,
+                );
+            } catch {
+                // No Web Audio support at all. Mark every track as unavailable; the edit
+                // list still flows to the server.
+                setDecodeStatus(new Map(found.map((t) => [t.number, {kind: "unavailable", reason: "Web Audio not available"}])));
+            }
+        }
     };
 
-    const toggleTrack = (index: number) =>
-        setSelectedTracks((prev) =>
-            prev.includes(index)
-                ? prev.filter((i) => i !== index)
-                : [...prev, index].sort((a, b) => a - b)
-        );
+    const onLoadedVideo = () => {
+        const v = videoRef.current;
+        if (!v) return;
+        v.muted = true;
 
-    const onLoadedVideo = (e: any) => {
-        if (!videoRef.current) return;
-        const duration = videoRef.current.duration;
-        setDuration(duration);
-        setRange([0, duration]);
+        setDuration(v.duration);
+        setRange([0, v.duration]);
+        setCurrentTime(0);
     }
 
-    const onRangeChange = (_: Event, value: number | number[], activeThumb: number) => {
-        if (!Array.isArray(value)) return;
-        setRange(value);
-        console.log(activeThumb);
-        if (videoRef.current) videoRef.current.currentTime = value[activeThumb];
+    const decodedTracks = useMemo(() => {
+        const out = new Map<number, DecodedAudioTrack>();
+        for (const [n, status] of decodeStatus) {
+            if (status.kind === "ready") out.set(n, status.track);
+        }
+        return out;
+    }, [decodeStatus]);
+
+    useAudioPreview({
+        videoRef,
+        src: localFile,
+        decodedTracks,
+        mutedTracks,
+        soloedTracks,
+        cuts,
+    });
+
+    const toggleMuted = (track: number) => setMutedTracks((prev) => {
+        const next = new Set(prev);
+        if (next.has(track)) next.delete(track); else next.add(track);
+        return next;
+    });
+
+    const toggleSoloed = (track: number) => setSoloedTracks((prev) => {
+        const next = new Set(prev);
+        if (next.has(track)) next.delete(track); else next.add(track);
+        return next;
+    });
+
+    const addCut = (cut: ClientCut) => setCuts((prev) => [...prev, cut]);
+
+    const updateCut = (id: string, next: {start: number; end: number}) => setCuts((prev) =>
+        prev.map((c) => c.id === id ? {...c, start: next.start, end: next.end} : c)
+    );
+
+    const deleteCut = (id: string) => setCuts((prev) => prev.filter((c) => c.id !== id));
+
+    const onRangeChange = (next: [number, number]) => {
+        setRange(next);
     }
 
     const onPlay = () => {
@@ -93,7 +168,10 @@ const UploadPage = () => {
 
     const onTimeUpdate = () => {
         const v = videoRef.current;
-        if (!v || v.paused) return;
+        if (!v) return;
+        setCurrentTime(v.currentTime);
+
+        if (v.paused) return;
         if (v.currentTime >= range[1]) {
             v.pause();
             v.currentTime = range[0]; // reset so the next play starts at the start point
@@ -114,6 +192,11 @@ const UploadPage = () => {
         const abortController = new AbortController();
         uploadAbortRef.current = abortController;
 
+        const selectedTracks = tracks.map((t) => t.number).filter((n) => !mutedTracks.has(n));
+        const uploadCuts = cuts
+            .filter((c) => selectedTracks.includes(c.track))
+            .map((c) => ({track: c.track, start: c.start, end: c.end}));
+
         try {
             // 1. We want to reserve an upload id server-side and learn the chunking plan.
             const initRes = await fetch("/api/upload", {
@@ -124,6 +207,7 @@ const UploadPage = () => {
                     description: description,
                     range: range,
                     selectedTracks: selectedTracks,
+                    cuts: uploadCuts,
                     size: file.size,
                     fileName: file.name,
                 }),
@@ -202,12 +286,17 @@ const UploadPage = () => {
 
             // Success at this point. Reset and navigate home
             if (localFile) URL.revokeObjectURL(localFile);
+            decodeAbortRef.current?.abort();
             setFile(null);
             setLocalFile(null);
             setTracks([]);
-            setSelectedTracks([]);
+            setMutedTracks(new Set());
+            setSoloedTracks(new Set());
+            setCuts([]);
+            setDecodeStatus(new Map());
             setDuration(0);
             setRange([0, 0]);
+            setCurrentTime(0);
             setUploadProgress(0);
             setUploadSpeed(null);
             setFinalizing(false);
@@ -254,39 +343,32 @@ const UploadPage = () => {
                                 onPlay={onPlay}
                                 onTimeUpdate={onTimeUpdate}
                             />
-                            <Slider
-                                value={range}
-                                onChange={onRangeChange}
-                                min={0}
-                                max={duration}
-                                step={0.1}
-                                disableSwap={true}
-                                valueLabelDisplay="auto"
+                            <TrimBar
+                                src={localFile}
+                                duration={duration}
+                                range={range}
+                                currentTime={currentTime}
+                                onRangeChange={onRangeChange}
+                            />
+                            <AudioEditor
+                                duration={duration}
+                                tracks={tracks}
+                                decodeStatus={decodeStatus}
+                                mutedTracks={mutedTracks}
+                                soloedTracks={soloedTracks}
+                                cuts={cuts}
+                                range={range}
+                                currentTime={currentTime}
+                                onToggleMuted={toggleMuted}
+                                onToggleSoloed={toggleSoloed}
+                                onAddCut={addCut}
+                                onUpdateCut={updateCut}
+                                onDeleteCut={deleteCut}
                             />
                         </div>
 
                         <div className={styles.Right}>
                             <UploadInformationComponent onSubmit={startUpload} />
-
-                            {tracks.length > 0 && (
-                                <div className={styles.Tracks}>
-                                    <Typography variant="subtitle2">Audio tracks to keep</Typography>
-                                    <FormGroup className={styles.TracksGroup}>
-                                        {tracks.map((t) => (
-                                            <FormControlLabel
-                                                key={t.number}
-                                                control={
-                                                    <Checkbox
-                                                        checked={selectedTracks.includes(t.number)}
-                                                        onChange={() => toggleTrack(t.number)}
-                                                    />
-                                                }
-                                                label={`Track ${t.number}${t.name ? ` – ${t.name}` : ""} (${t.codec})`}
-                                            />
-                                        ))}
-                                    </FormGroup>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </>
