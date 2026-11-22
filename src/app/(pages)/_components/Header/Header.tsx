@@ -1,0 +1,167 @@
+'use client';
+
+import styles from "./Header.module.scss";
+
+import {
+    AppBar,
+    Avatar,
+    Box,
+    Button,
+    Container,
+    IconButton,
+    Menu,
+    MenuItem,
+    Toolbar,
+    Tooltip,
+    Typography
+} from "@mui/material";
+
+import AdbIcon from '@mui/icons-material/Adb';
+import MenuIcon from '@mui/icons-material/Menu';
+import React from "react";
+import Link from "next/link";
+import {authClient} from "@lib/auth-client";
+import {useRouter} from "next/navigation";
+
+const pages = ['Home', 'Upload'];
+
+const Header = () => {
+    const { data: session, isPending } = authClient.useSession();
+    const router = useRouter();
+
+    const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+    const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+
+    const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorElNav(event.currentTarget);
+    };
+    const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+        setAnchorElUser(event.currentTarget);
+    };
+
+    const handleCloseNavMenu = () => {
+        setAnchorElNav(null);
+    };
+
+    const handleCloseUserMenu = () => {
+        setAnchorElUser(null);
+    };
+
+    const handleLogout = async () => {
+        await authClient.signOut({
+            fetchOptions: {
+                onSuccess: () => {
+                    router.push('/')
+                    router.refresh()
+                },
+            }
+        });
+        setAnchorElUser(null);
+    }
+
+    return (
+        <header className={styles.Header}>
+            <AppBar position="static" color={"secondary"}>
+                <Container maxWidth="xl">
+                    <Toolbar disableGutters>
+                        <AdbIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+                        <Typography
+                            variant="h6"
+                            noWrap
+                            component={Link}
+                            href={"/"}
+                        >
+                            Espresso Share
+                        </Typography>
+
+                        <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
+                            <IconButton
+                                size="large"
+                                aria-label="account of current user"
+                                aria-controls="menu-appbar"
+                                aria-haspopup="true"
+                                onClick={handleOpenNavMenu}
+                                color="inherit"
+                            >
+                                <MenuIcon />
+                            </IconButton>
+                            <Menu
+                                id="menu-appbar"
+                                anchorEl={anchorElNav}
+                                anchorOrigin={{
+                                    vertical: 'bottom',
+                                    horizontal: 'left',
+                                }}
+                                keepMounted
+                                transformOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'left',
+                                }}
+                                open={Boolean(anchorElNav)}
+                                onClose={handleCloseNavMenu}
+                                sx={{ display: { xs: 'block', md: 'none' } }}
+                            >
+                                {pages.map((page) => (
+                                    <MenuItem component={Link} href={`/${page.toLowerCase()}`} key={page} onClick={handleCloseNavMenu}>
+                                        <Typography sx={{ textAlign: 'center' }}>{page}</Typography>
+                                    </MenuItem>
+                                ))}
+                            </Menu>
+                        </Box>
+                        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+                            {pages.map((page) => (
+                                <Button
+                                    key={page}
+                                    component={Link}
+                                    onClick={handleCloseNavMenu}
+                                    href={`/${page.toLowerCase()}`}
+                                >
+                                    <Typography variant="body2" color={"textPrimary"}>
+                                        {page}
+                                    </Typography>
+                                </Button>
+                            ))}
+                        </Box>
+
+
+                        {
+                            session &&
+                            <Box sx={{ flexGrow: 0 }}>
+                                <Tooltip title="Open settings">
+                                    <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                                        <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                                    </IconButton>
+                                </Tooltip>
+                                <Menu
+                                    sx={{ mt: '45px' }}
+                                    id="menu-appbar"
+                                    anchorEl={anchorElUser}
+                                    anchorOrigin={{
+                                        vertical: 'top',
+                                        horizontal: 'right',
+                                    }}
+                                    keepMounted
+                                    transformOrigin={{
+                                        vertical: 'top',
+                                        horizontal: 'right',
+                                    }}
+                                    open={Boolean(anchorElUser)}
+                                    onClose={handleCloseUserMenu}
+                                >
+                                    <MenuItem key={"Profile"} onClick={handleCloseUserMenu}>
+                                        <Typography sx={{ textAlign: 'center' }}>Profile</Typography>
+                                    </MenuItem>
+                                    <MenuItem key={"Logout"} onClick={handleLogout}>
+                                        <Typography sx={{ textAlign: 'center' }}>Logout</Typography>
+                                    </MenuItem>
+                                </Menu>
+                            </Box>
+                        }
+                    </Toolbar>
+                </Container>
+            </AppBar>
+        </header>
+    );
+}
+
+export default Header;

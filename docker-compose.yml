@@ -1,0 +1,48 @@
+services:
+  db: # Port 5432
+    image: postgres:alpine
+    volumes:
+      - espresso-share-db-data:/var/lib/postgresql/18/docker
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      POSTGRES_DB: espresso
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d espresso" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - espresso-share_nw
+
+  espresso:
+    image: beanbeanjuice/espresso-share:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://admin:password@db:5432/espresso?schema=public
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: http://localhost:3000 # PUBLIC URL THAT YOU ARE USING
+      EMBED_MAX_MB: ${EMBED_MAX_MB:-200} # max video size in MB to embed as a playable video in Discord etc. Anything larger just shows the thumbnail
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      PRE_PRODUCTION: false # TESTING ONLY
+    volumes:
+      - ./content/uploads:/app/uploads
+      - ./content/videos:/app/videos
+      - ./content/thumbnails:/app/thumbnails
+    ports:
+      - "3000:3000"
+    networks:
+      - espresso-share_nw
+
+volumes:
+  espresso-share-db-data:
+
+networks:
+  espresso-share_nw:
+    external: false
