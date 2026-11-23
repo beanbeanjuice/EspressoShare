@@ -21,7 +21,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import LocalDate from "@components/LocalDate";
 import {MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH} from "@lib/limits";
-import {Video} from "@/generated/prisma/browser";
+import type {Video} from "@/generated/prisma/browser";
 import {VideoStatus} from "@/generated/prisma/enums";
 import {useRouter} from "next/navigation";
 import React from "react";

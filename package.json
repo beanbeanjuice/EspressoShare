@@ -5,7 +5,7 @@
   "scripts": {
     "dev:containers": "docker compose -f docker-compose.dev.yml up -d",
     "dev": "pnpm run dev:containers && pnpm run prisma:setup && next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "prisma:migrate:dev": "prisma migrate dev",

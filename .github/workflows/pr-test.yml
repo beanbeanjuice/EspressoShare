@@ -76,6 +76,7 @@ jobs:
         run: pnpm build
         env:
           CALENDAR_ICS_LINK: http://placeholder
+          DATABASE_URL: postgresql://placeholder:placeholder@placeholder:5432/placeholder
 
   docker-release:
     if: ${{ !startsWith(github.head_ref, 'dependabot/') }}
