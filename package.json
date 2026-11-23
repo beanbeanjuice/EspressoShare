@@ -27,7 +27,7 @@
     "better-auth": "^1.7.15",
     "mediabunny": "^1.65.2",
     "next": "16.4.6",
-    "react": "19.3.0",
+    "react": "19.3.1",
     "react-dom": "19.3.0",
     "sqids": "^0.3.0",
     "ts-node": "^10.9.2"
