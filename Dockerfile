@@ -18,7 +18,6 @@ ENV DATABASE_URL="postgresql://placeholder:placeholder@placeholder:5432/placehol
     BETTER_AUTH_SECRET="placeholder" \
     BETTER_AUTH_URL="http://placeholder"
 
-RUN pnpm exec prisma generate
 RUN pnpm run build
 
 RUN pnpm dlx esbuild@0.28.2 prisma.config.ts \
