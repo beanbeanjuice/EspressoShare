@@ -23,7 +23,7 @@
     "@mui/material-nextjs": "^9.5.0",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
-    "@videojs/react": "^10.3.0",
+    "@videojs/react": "^10.5.0",
     "better-auth": "^1.7.15",
     "mediabunny": "^1.65.2",
     "next": "16.4.6",
