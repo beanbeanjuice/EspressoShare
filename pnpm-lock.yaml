@@ -185,8 +185,8 @@ importers:
         specifier: ^11.14.1
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0)
       '@mediabunny/server':
-        specifier: ^1.65.2
-        version: 1.65.2(mediabunny@1.65.2)
+        specifier: ^1.66.2
+        version: 1.66.2(mediabunny@1.65.2)
       '@mui/icons-material':
         specifier: ^9.5.0
         version: 9.5.0(@mui/material@9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(@types/react@19.3.0)(react@19.3.0)(supports-color@7.2.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react@19.3.0)(react@19.3.0)
@@ -889,13 +889,13 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
-  '@mediabunny/prores@1.65.2':
-    resolution: {integrity: sha512-kOnGzRRSiIPXA/mVmLzxAkLhu923Iu+J7ejbVmVEFSqY9g9KQ97+mSQPpA5wjlBBwFdaUC0PBm1Pymn/gwj0sg==}
+  '@mediabunny/prores@1.66.2':
+    resolution: {integrity: sha512-kkUPDHiTSjQ0dU7hUijJeeDyoX+UUsTe+pQ0Z3bbKwVp4G1DdUoYXHpcO3Y37u2fSXm0P52NqIRaAWhssHpl/g==}
     peerDependencies:
       mediabunny: ^1.49.0
 
-  '@mediabunny/server@1.65.2':
-    resolution: {integrity: sha512-51R4DDKrYDAhSD3AWJBWDVDy+cFaVoihQ0l9pUhTQiEIhuK3KLdj1TMth4fU8skZRW3blFHmWJjCW242frOe0g==}
+  '@mediabunny/server@1.66.2':
+    resolution: {integrity: sha512-YgoBPLnjyWwhqArs4+/vm+Lil1JLoo1j+xisGT7xWwW34mRhiwX8HcuH0/jraIe7GmbnMzZysVCz0DwcFkoMMQ==}
     peerDependencies:
       mediabunny: ^1.45.0
 
@@ -3436,8 +3436,8 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  turbores@1.2.4:
-    resolution: {integrity: sha512-t1or4DcDMhNoA7PN3ruKbxCnb5pCvvocpJVXnD4tcDX3N3z+JBRC04NYntpR0zzSQYT+iOwFUoPzObs5hh70lQ==}
+  turbores@1.2.5:
+    resolution: {integrity: sha512-497/HsPiZDLU74mdoKWs/u6AtLBwOjLeOXbc3x9SuJRFOSw2yckEoBtz7t0GdjZC5qHhCP95L2QmH0a/ZqRWHw==}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -4107,14 +4107,14 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@mediabunny/prores@1.65.2(mediabunny@1.65.2)':
+  '@mediabunny/prores@1.66.2(mediabunny@1.65.2)':
     dependencies:
       mediabunny: 1.65.2
-      turbores: 1.2.4
+      turbores: 1.2.5
 
-  '@mediabunny/server@1.65.2(mediabunny@1.65.2)':
+  '@mediabunny/server@1.66.2(mediabunny@1.65.2)':
     dependencies:
-      '@mediabunny/prores': 1.65.2(mediabunny@1.65.2)
+      '@mediabunny/prores': 1.66.2(mediabunny@1.65.2)
       mediabunny: 1.65.2
       node-av: 6.2.0
     transitivePeerDependencies:
@@ -6793,7 +6793,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  turbores@1.2.4:
+  turbores@1.2.5:
     optionalDependencies:
       '@rollup/rollup-linux-x64-gnu': 4.62.1
 
